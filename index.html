@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f7f4">
+  <meta name="description" content="A TradingView Pine indicator for NIFTY 50 direction signals using completed 5-minute and 25-minute candles.">
+  <title>NIFTY 50 Direction Signals</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f6f7f4;
+      --white: #fff;
+      --ink: #17231c;
+      --muted: #647168;
+      --line: #d9e0da;
+      --green: #08784e;
+      --green-wash: #e8f4ec;
+      --red: #bd493f;
+      --code: #111a16;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font: 16px/1.5 Georgia, "Times New Roman", serif;
+    }
+
+    a { color: inherit; }
+
+    .shell {
+      width: min(100% - 40px, 1040px);
+      margin: 0 auto;
+    }
+
+    header {
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+      font: 600 13px/1.2 ui-sans-serif, system-ui, sans-serif;
+    }
+
+    .wordmark { letter-spacing: 0; }
+    .wordmark span { color: var(--green); }
+
+    .repo-link {
+      color: var(--muted);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 4px;
+    }
+
+    main { padding: 66px 0 56px; }
+
+    .eyebrow {
+      margin: 0 0 12px;
+      color: var(--green);
+      font: 700 11px/1.2 ui-sans-serif, system-ui, sans-serif;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 720px;
+      margin: 0;
+      font-size: 58px;
+      font-weight: 400;
+      line-height: 1.04;
+      letter-spacing: 0;
+    }
+
+    .intro {
+      max-width: 650px;
+      margin: 18px 0 0;
+      color: var(--muted);
+      font: 16px/1.65 ui-sans-serif, system-ui, sans-serif;
+    }
+
+    .signals {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      margin: 38px 0 42px;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .signal {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 18px;
+      align-items: center;
+      min-height: 88px;
+      padding: 16px 20px 16px 0;
+    }
+
+    .signal + .signal {
+      border-left: 1px solid var(--line);
+      padding-left: 24px;
+    }
+
+    .tag {
+      width: fit-content;
+      padding: 6px 10px;
+      border-radius: 3px;
+      background: var(--green-wash);
+      color: var(--green);
+      font: 700 11px/1 ui-sans-serif, system-ui, sans-serif;
+    }
+
+    .tag.put { background: #faecea; color: var(--red); }
+
+    .signal p {
+      margin: 0;
+      color: var(--muted);
+      font: 13px/1.5 ui-sans-serif, system-ui, sans-serif;
+    }
+
+    .code-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 12px;
+    }
+
+    h2 { margin: 0; font-size: 22px; font-weight: 400; }
+
+    .actions { display: flex; gap: 8px; }
+
+    button, .download {
+      min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 13px;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      background: var(--white);
+      color: var(--ink);
+      cursor: pointer;
+      font: 600 12px/1 ui-sans-serif, system-ui, sans-serif;
+      text-decoration: none;
+    }
+
+    button:hover, .download:hover { border-color: var(--green); }
+
+    .code-frame {
+      overflow: hidden;
+      border: 1px solid #26352d;
+      border-radius: 4px;
+      background: var(--code);
+    }
+
+    .code-topline {
+      display: flex;
+      justify-content: space-between;
+      padding: 11px 16px;
+      border-bottom: 1px solid #26352d;
+      color: #a7b5ab;
+      font: 11px/1.2 ui-monospace, SFMono-Regular, Consolas, monospace;
+    }
+
+    pre {
+      max-height: 500px;
+      overflow: auto;
+      margin: 0;
+      padding: 20px;
+      color: #e4eee6;
+      font: 12px/1.7 ui-monospace, SFMono-Regular, Consolas, monospace;
+      tab-size: 4;
+    }
+
+    .note {
+      display: flex;
+      gap: 12px;
+      margin-top: 18px;
+      color: var(--muted);
+      font: 12px/1.6 ui-sans-serif, system-ui, sans-serif;
+    }
+
+    .note strong { color: var(--ink); }
+
+    footer {
+      padding: 18px 0 28px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font: 11px/1.5 ui-sans-serif, system-ui, sans-serif;
+    }
+
+    @media (max-width: 600px) {
+      .shell { width: min(100% - 28px, 1040px); }
+      main { padding-top: 46px; }
+      h1 { font-size: 42px; }
+      .signals { grid-template-columns: 1fr; }
+      .signal { min-height: 76px; }
+      .signal + .signal { border-top: 1px solid var(--line); border-left: 0; padding-left: 0; }
+      .code-heading { align-items: start; flex-direction: column; }
+      .actions { width: 100%; }
+      button, .download { flex: 1; }
+      pre { padding: 15px; font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="wordmark"><span>NIFTY</span> / DIRECTION SIGNALS</div>
+      <a class="repo-link" href="https://github.com/amalpradhan24-ops/Nifty-50-Daily-Trading">Source repository</a>
+    </header>
+
+    <main>
+      <p class="eyebrow">TradingView indicator · Pine Script v6</p>
+      <h1>NIFTY 50<br>Direction Signals</h1>
+      <p class="intro">A two-timeframe direction filter built from completed 5-minute and 25-minute candles. Signals appear only when both timeframes agree.</p>
+
+      <section class="signals" aria-label="Signal conditions">
+        <div class="signal">
+          <span class="tag">CALL BIAS</span>
+          <p>Both timeframes trend up and RSI is above 50.</p>
+        </div>
+        <div class="signal">
+          <span class="tag put">PUT BIAS</span>
+          <p>Both timeframes trend down and RSI is below 50.</p>
+        </div>
+      </section>
+
+      <section aria-labelledby="script-title">
+        <div class="code-heading">
+          <h2 id="script-title">Pine Script</h2>
+          <div class="actions">
+            <button id="copy-button" type="button">Copy script</button>
+            <a class="download" href="./nifty_5m_25m_signals.pine" download>Download .pine</a>
+          </div>
+        </div>
+        <div class="code-frame">
+          <div class="code-topline"><span>nifty_5m_25m_signals.pine</span><span id="load-state" aria-live="polite">Loading script...</span></div>
+          <pre><code id="script-code"></code></pre>
+        </div>
+      </section>
+
+      <p class="note"><strong>Risk note</strong><span>Signals are not trade recommendations or guaranteed predictions. Confirm conditions and manage risk before placing an options trade.</span></p>
+    </main>
+
+    <footer>For chart use, apply the indicator to a 5-minute NIFTY chart. Alerts are configured in TradingView.</footer>
+  </div>
+
+  <script>
+    const codeElement = document.querySelector("#script-code");
+    const loadState = document.querySelector("#load-state");
+    const copyButton = document.querySelector("#copy-button");
+
+    fetch("./nifty_5m_25m_signals.pine")
+      .then((response) => {
+        if (!response.ok) throw new Error("Could not load script");
+        return response.text();
+      })
+      .then((script) => {
+        codeElement.textContent = script;
+        loadState.textContent = "Ready";
+      })
+      .catch(() => {
+        loadState.textContent = "Unable to load";
+        codeElement.textContent = "The script could not be loaded. Use Download .pine to get the source file.";
+      });
+
+    copyButton.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(codeElement.textContent);
+        copyButton.textContent = "Copied";
+        window.setTimeout(() => { copyButton.textContent = "Copy script"; }, 1600);
+      } catch {
+        copyButton.textContent = "Copy unavailable";
+        window.setTimeout(() => { copyButton.textContent = "Copy script"; }, 1600);
+      }
+    });
+  </script>
+</body>
+</html>

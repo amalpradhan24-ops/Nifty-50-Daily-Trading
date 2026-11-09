@@ -1,0 +1,37 @@
+//@version=6
+indicator("NIFTY 5m + 25m Direction Signals", overlay=true)
+
+fastLength = input.int(9, "Fast EMA", minval=1)
+slowLength = input.int(21, "Slow EMA", minval=2)
+rsiLength = input.int(14, "RSI Length", minval=1)
+
+if barstate.isfirst and timeframe.in_seconds() != 300
+    runtime.error("Use this indicator on a 5-minute chart.")
+
+[fast5, slow5, rsi5] = request.security(
+     syminfo.tickerid,
+     "5",
+     [ta.ema(close, fastLength)[1], ta.ema(close, slowLength)[1], ta.rsi(close, rsiLength)[1]],
+     gaps=barmerge.gaps_off,
+     lookahead=barmerge.lookahead_on)
+
+[fast25, slow25, rsi25] = request.security(
+     syminfo.tickerid,
+     "25",
+     [ta.ema(close, fastLength)[1], ta.ema(close, slowLength)[1], ta.rsi(close, rsiLength)[1]],
+     gaps=barmerge.gaps_off,
+     lookahead=barmerge.lookahead_on)
+
+bullish = fast5 > slow5 and fast25 > slow25 and rsi5 > 50 and rsi25 > 50
+bearish = fast5 < slow5 and fast25 < slow25 and rsi5 < 50 and rsi25 < 50
+
+callSignal = bullish and not bullish[1]
+putSignal = bearish and not bearish[1]
+
+plotshape(callSignal, title="CALL bias", style=shape.labelup, location=location.belowbar,
+     color=color.green, text="CALL", textcolor=color.white, size=size.small)
+plotshape(putSignal, title="PUT bias", style=shape.labeldown, location=location.abovebar,
+     color=color.red, text="PUT", textcolor=color.white, size=size.small)
+
+alertcondition(callSignal, title="NIFTY CALL bias", message="{{ticker}}: 5m and 25m bullish alignment. CALL bias; confirm before trading.")
+alertcondition(putSignal, title="NIFTY PUT bias", message="{{ticker}}: 5m and 25m bearish alignment. PUT bias; confirm before trading.")
